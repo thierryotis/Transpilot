@@ -1,0 +1,40 @@
+{
+  "name": "transpilot",
+  "version": "1.0.0",
+  "homepage": ".",
+  "description": "management of cement inputs and outputs",
+  "main": "./server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon server.js",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thierryotis/CimentJam.git"
+  },
+  "keywords": [
+    "Transportation pilot",
+    "Transport",
+    "trucks fleet"
+  ],
+  "author": "Thierry Otis",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/thierryotis/CimentJam/issues"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "express-list-endpoints": "^6.0.0",
+    "jsonwebtoken": "^9.0.0",
+    "jwt-decode": "^3.1.2",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.3.1",
+    "nodemon": "^2.0.22"
+  }
+}
