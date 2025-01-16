@@ -27,30 +27,40 @@ const getChargement = async (id) => {
   }
 };
 
-// Get all chargements
-const getChargements = async () => {
+const getChargements = async (page = 1, limit = 20) => {
   try {
+    const offset = (page - 1) * limit;
     const connection = await connectDatabase();
+
+    // Requête pour compter le nombre total d'enregistrements
+    const totalQuery = "SELECT COUNT(*) as total FROM chargements";
+    const [totalRows] = await connection.query(totalQuery);
+    const total = totalRows[0].total;
+
+    // Requête pour récupérer les données paginées
     const query = `
-    SELECT c.*, 
-    ch.nom as chauffeur_nom, 
-    tr.immat as tracteur_immat, 
-    bn.immat as benne_immat, 
-    p.nom as produit_nom, 
-    u.nom as user_nom, 
-    pr.nom as prestataire_nom,
-    l.nom AS lieu_nom
-  FROM chargements c
-  JOIN chauffeurs ch ON c.chauffeur_id = ch.id
-  JOIN tracteurs tr ON c.immatTracteur = tr.immat
-  JOIN bennes bn ON c.immatBenne = bn.immat
-  JOIN produits p ON c.type_produit_id = p.id
-  JOIN users u ON c.operateur_id = u.id
-  JOIN proprios pr ON c.prestataire_id = pr.id
-  JOIN lieux l ON c.lieu = l.id`;
-    const [rows] = await connection.query(query);
+      SELECT c.*, 
+        ch.nom as chauffeur_nom, 
+        tr.immat as tracteur_immat, 
+        bn.immat as benne_immat, 
+        p.nom as produit_nom, 
+        u.nom as user_nom, 
+        pr.nom as prestataire_nom,
+        l.nom AS lieu_nom
+      FROM chargements c
+      JOIN chauffeurs ch ON c.chauffeur_id = ch.id
+      JOIN tracteurs tr ON c.immatTracteur = tr.immat
+      JOIN bennes bn ON c.immatBenne = bn.immat
+      JOIN produits p ON c.type_produit_id = p.id
+      JOIN users u ON c.operateur_id = u.id
+      JOIN proprios pr ON c.prestataire_id = pr.id
+      JOIN lieux l ON c.lieu = l.id
+      LIMIT ? OFFSET ?;
+    `;
+    const [rows] = await connection.query(query, [limit, offset]);
     connection.end();
-    return rows;
+
+    return { chargements: rows, total };
   } catch (error) {
     throw error;
   }

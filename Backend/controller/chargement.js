@@ -32,15 +32,26 @@ router.post("/addchargement", isAuthenticated, canChargement, async (req, res, n
 // Get all chargements
 router.get("/getchargements", isAuthenticated, canChargement, async (req, res, next) => {
   try {
-    const chargements = await getChargements();
+    // Récupère page et limit depuis les paramètres de requête
+    const page = parseInt(req.query.page, 10) || 1; // Par défaut : page 1
+    const limit = parseInt(req.query.limit, 10) || 20; // Par défaut : 20 éléments par page
+
+    // Appelle la fonction du modèle avec pagination
+    const { chargements, total } = await getChargements(page, limit);
+
+    // Retourne les données avec la pagination
     res.status(200).json({
       success: true,
       chargements,
+      total, // Nombre total d'enregistrements
+      page,  // Page actuelle
+      limit, // Limite par page
     });
   } catch (error) {
     return next(error);
   }
 });
+
 
 // Get all the chargements that has not chargements
 router.get("/getundechargedchargements", isAuthenticated, canChargement, async (req, res, next) => {
