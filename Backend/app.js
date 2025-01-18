@@ -42,6 +42,10 @@ if (process.env.NODE_ENV !== "PRODUCTION") {
   require("dotenv").config({
     path: "backend/config/.env",
   });
+}else{
+  require("dotenv").config({
+    path: "backend/config/.env.prod",
+  });
 }
 
 // simple route
