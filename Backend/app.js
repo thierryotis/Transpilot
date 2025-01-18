@@ -1,5 +1,35 @@
 const express = require("express");
+const path = require("path");
+const dotenv = require("dotenv");
 const app = express();
+
+// Chargement des variables d'environnement
+// Déterminez le chemin du fichier .env en fonction de l'environnement
+const envPath =
+  process.env.NODE_ENV === "production"
+    ? path.join("/home/debian/envs/transpilot.env")
+    : path.join(__dirname, "/config/.env");
+
+// Essayez de charger les variables d'environnement
+try {
+  const result = dotenv.config({ path: envPath });
+
+  // Vérifiez si le fichier .env a été correctement chargé
+  if (result.error) {
+    console.error(`Erreur lors du chargement du fichier .env :`, result.error);
+    process.exit(1); // Arrêtez le processus si les variables d'environnement sont critiques
+  } else {
+    console.log(`Fichier .env chargé depuis : ${envPath}`);
+  }
+} catch (error) {
+  console.error(`Erreur inattendue lors du chargement du fichier .env :`, error);
+  process.exit(1);
+}
+
+// Le reste de votre application peut utiliser les variables chargées
+console.log("NODE_ENV:", process.env.NODE_ENV);
+
+
 //const listEndpoints = require('express-list-endpoints');
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -29,24 +59,11 @@ app.use(
   })
 );
 
-require("dotenv").config({
-  path: "./.env",
-});
+
 
 app.use(express.json());
-app.use("/", express.static("uploads"));
 app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
-
-// config
-if (process.env.NODE_ENV !== "PRODUCTION") {
-  require("dotenv").config({
-    path: "backend/config/.env",
-  });
-}else{
-  require("dotenv").config({
-    path: "backend/config/.env.prod",
-  });
-}
+app.use("/", express.static("uploads"));
 
 // simple route
 app.get("/", (req, res) => {
