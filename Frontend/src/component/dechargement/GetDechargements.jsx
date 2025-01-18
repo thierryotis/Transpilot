@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
-import {  useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -9,9 +8,7 @@ import Modal from 'react-modal';
 import { toast } from 'react-toastify';
 import { serverUrl } from '../../server';
 import Cookies from 'js-cookie';
-import { RoleContext } from '../../RoleContext'; 
-
-
+import { RoleContext } from '../../RoleContext';
 
 const modalStyles = {
   content: {
@@ -22,12 +19,16 @@ const modalStyles = {
 };
 
 const GetDechargements = () => {
-  Modal.setAppElement('#root'); 
+  Modal.setAppElement('#root');
   const userRole = useContext(RoleContext);
   const [dechargements, setDechargements] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedDechargement, setSelectedDechargement] = useState(null);
+  const [page, setPage] = useState(1); 
+  const [limit, setLimit] = useState(25); 
+  const [total, setTotal] = useState(0); 
   const navigate = useNavigate();
+
   const openModal = (dechargement) => {
     setSelectedDechargement(dechargement);
     setModalOpen(true);
@@ -39,59 +40,57 @@ const GetDechargements = () => {
   };
 
   const deleteDechargement = (id) => {
-    const token = Cookies.get('jwt')
+    const token = Cookies.get('jwt');
     axios
       .delete(`${serverUrl}/api/dechargement/deletedechargement/${id}`, {
         headers: {
-          Authorization: `Bearer ${token}` // Ajoute le token dans l'en-tête Authorization de la requête
-        }
+          Authorization: `Bearer ${token}`,
+        },
       })
       .then((response) => {
         if (response.data.success) {
-          const token = Cookies.get('jwt')
-          toast.success('Dechargement supprimé avec success');
-          // Refresh the list of dechargements after deletion
-          axios
-            .get(`${serverUrl}/api/dechargement/getdechargements`, {headers: {
-              Authorization: `Bearer ${token}` // Ajoute le token dans l'en-tête Authorization de la requête
-            }})
-            .then((response) => {
-              setDechargements(response.data.dechargements);
-            })
-            .catch((error) => {
-              console.error(error);
-            });
+          toast.success('Dechargement supprimé avec succès');
+          fetchDechargements(page); // Rafraîchir la liste après suppression
           setTimeout(() => {
             closeModal();
           }, 1000);
         } else {
-          toast.error('Error deleting the dechargement');
+          toast.error('Erreur lors de la suppression du déchargement');
         }
       })
       .catch((error) => {
         console.error(error);
-        toast.error('An error occurred while deleting the dechargement');
+        toast.error('Une erreur est survenue lors de la suppression du déchargement');
         setTimeout(() => {
           closeModal();
         }, 1000);
       });
   };
 
-  useEffect(() => {
-    const token = Cookies.get('jwt')
+  const fetchDechargements = (page) => {
+    const token = Cookies.get('jwt');
     axios
-      .get(`${serverUrl}/api/dechargement/getdechargements`,{
+      .get(`${serverUrl}/api/dechargement/getdechargements?page=${page}&limit=${limit}`, {
         headers: {
-          Authorization: `Bearer ${token}` // Ajoute le token dans l'en-tête Authorization de la requête
-        }
-      }) // Assuming the server is running on the same host
+          Authorization: `Bearer ${token}`,
+        },
+      })
       .then((response) => {
         setDechargements(response.data.dechargements);
+        setTotal(response.data.total); // Mettre à jour le nombre total d'éléments
       })
       .catch((error) => {
         console.error(error);
       });
-  }, []);
+  };
+
+  useEffect(() => {
+    fetchDechargements(page); // Charger les données de la page actuelle
+  }, [page, limit]);
+
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+  };
 
   return (
     <>
@@ -99,21 +98,21 @@ const GetDechargements = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>N° </TableCell>
+              <TableCell>N°</TableCell>
               <TableCell>Bord.</TableCell>
               <TableCell>Etat Camion</TableCell>
               <TableCell>Date</TableCell>
-              <TableCell>Lieu </TableCell>
+              <TableCell>Lieu</TableCell>
               <TableCell>Pds Camion - Pesée à plein</TableCell>
               <TableCell>Poids Camion - Pesée à vide</TableCell>
               <TableCell>Poids Chargement</TableCell>
-              {/* <TableCell>Actions</TableCell> */}
+              {userRole === 'admin' && <TableCell>Actions</TableCell>}
             </TableRow>
           </TableHead>
           <TableBody>
             {dechargements.map((dechargement, i) => (
               <TableRow key={dechargement.id}>
-                <TableCell>{i+1} </TableCell>
+                <TableCell>{(page - 1) * limit + i + 1}</TableCell>
                 <TableCell>{dechargement.numero_bordereau}</TableCell>
                 <TableCell>{dechargement.etat_camion}</TableCell>
                 <TableCell>{dechargement.date}</TableCell>
@@ -121,30 +120,53 @@ const GetDechargements = () => {
                 <TableCell>{dechargement.poids_camion_decharge}</TableCell>
                 <TableCell>{dechargement.poids_camion_apres_chargement}</TableCell>
                 <TableCell>{dechargement.poids_camion_decharge - dechargement.poids_camion_apres_chargement}</TableCell>
-                {(userRole == 'admin') && (<TableCell>
-                <Button onClick={() => {
-                    Cookies.set('dechargement', JSON.stringify(dechargement));
-                    navigate('/dashboard/modifydechargement');
-                }}>
-                    <EditIcon />
-                </Button>
-                  <Button onClick={() => openModal(dechargement)}>
-                    <DeleteIcon />
-                  </Button>
-                </TableCell> )}
+                {userRole === 'admin' && (
+                  <TableCell>
+                    <Button
+                      onClick={() => {
+                        Cookies.set('dechargement', JSON.stringify(dechargement));
+                        navigate('/dashboard/modifydechargement');
+                      }}
+                    >
+                      <EditIcon />
+                    </Button>
+                    <Button onClick={() => openModal(dechargement)}>
+                      <DeleteIcon />
+                    </Button>
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
 
+      {/* Pagination */}
+      <div style={{ marginTop: '20px', textAlign: 'center' }}>
+        <Button
+          onClick={() => handlePageChange(page - 1)}
+          disabled={page === 1}
+        >
+          Précédent
+        </Button>
+        <span style={{ margin: '0 10px' }}>
+          Page {page} sur {Math.ceil(total / limit)}
+        </span>
+        <Button
+          onClick={() => handlePageChange(page + 1)}
+          disabled={page === Math.ceil(total / limit)}
+        >
+          Suivant
+        </Button>
+      </div>
+
       <Modal isOpen={modalOpen} onRequestClose={closeModal} ariaHideApp={false} style={modalStyles}>
         {selectedDechargement && (
           <>
             <h2>Confirmation</h2>
-            <p>Do you really want to delete this dechargement?</p>
-            <Button onClick={() => deleteDechargement(selectedDechargement.id)}>Confirm</Button>
-            <Button onClick={closeModal}>Cancel</Button>
+            <p>Voulez-vous vraiment supprimer ce déchargement ?</p>
+            <Button onClick={() => deleteDechargement(selectedDechargement.id)}>Confirmer</Button>
+            <Button onClick={closeModal}>Annuler</Button>
           </>
         )}
       </Modal>

@@ -27,15 +27,35 @@ const getDechargement = async (id) => {
 };
 
 // Get all dechargements
-const getDechargements = async () => {
+// Get all dechargements with pagination
+const getDechargements = async (page, limit) => {
   try {
     const connection = await connectDatabase();
-    const query = `SELECT dechargements.*, lieux.nom AS lieu_nom, lieux.id AS lieu_id
-    FROM dechargements JOIN lieux ON dechargements.lieu_dechargement = lieux.id;
+
+    // Calculer l'offset pour la pagination
+    const offset = (page - 1) * limit;
+
+    // Requête pour récupérer les déchargements paginés
+    const query = `
+      SELECT dechargements.*, lieux.nom AS lieu_nom, lieux.id AS lieu_id
+      FROM dechargements
+      JOIN lieux ON dechargements.lieu_dechargement = lieux.id
+      LIMIT ? OFFSET ?;
     `;
-    const [rows] = await connection.query(query);
+
+    // Requête pour compter le nombre total de déchargements
+    const countQuery = `SELECT COUNT(*) AS total FROM dechargements;`;
+
+    // Exécuter les deux requêtes
+    const [rows] = await connection.query(query, [limit, offset]);
+    const [totalRows] = await connection.query(countQuery);
+
     connection.end();
-    return rows;
+
+    return {
+      dechargements: rows,
+      total: totalRows[0].total
+    };
   } catch (error) {
     throw error;
   }

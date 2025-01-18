@@ -206,7 +206,7 @@ const AddChargement = () => {
               </MenuItem>
             ))}
           </Select>
-          <TextField
+          {/* <TextField
             margin="normal"
             fullWidth
             id="numero_chargement"
@@ -215,7 +215,7 @@ const AddChargement = () => {
             autoFocus
             value={numeroChargement}
             onChange={(e) => setNumeroChargement(e.target.value)}
-          />
+          /> */}
           <TextField
             margin="normal"
             required
@@ -336,7 +336,7 @@ const AddChargement = () => {
             required
             fullWidth
             name="poids_camion_charge"
-            label="Poids Camion - pesée à plein"
+            label="Poids Camion pesé à plein"
             id="poids_camion_charge"
             value={poidsCamionCharge}
             onChange={(e) => setPoidsCamionCharge(e.target.value)}

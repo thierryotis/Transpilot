@@ -32,7 +32,7 @@ const AddDechargement = () => {
   const [poidsCamionDecharge, setPoidsCamionDecharge] = useState("");
   const [poidsCamionApresChargement, setPoidsCamionApresChargement] =
     useState("");
-
+  const [selectedChargement, setSelectedChargement] = useState(null);
   const [chargementId, setChargementId] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [chargements, setChargements] = useState([]);
@@ -80,7 +80,6 @@ const AddDechargement = () => {
       chargement_id: chargementId,
       operateur_id: operateurId,
     };
-    
 
     const getChargementId = () => {};
     axios
@@ -92,7 +91,7 @@ const AddDechargement = () => {
       .then((response) => {
         console.log(response.data); // Server response
         toast.success("Dechargement ajouté avec succès");
-        getUndeChargedChargements()
+        getUndeChargedChargements();
         resetForm();
       })
       .catch((error) => {
@@ -118,7 +117,7 @@ const AddDechargement = () => {
   useEffect(() => {
     const token = Cookies.get("jwt");
     setOperateurId(Cookies.get("userid"));
-    getUndeChargedChargements()
+    getUndeChargedChargements();
   }, []);
 
   const resetForm = () => {
@@ -159,6 +158,7 @@ const AddDechargement = () => {
                 (obj) => obj.numero_bordereau === e.target.value
               );
               setChargementId(result.id);
+              setSelectedChargement(result); // Stocker les informations du chargement sélectionné
             }}
             fullWidth
           >
@@ -168,6 +168,57 @@ const AddDechargement = () => {
               </MenuItem>
             ))}
           </Select>
+          {selectedChargement && (
+            <div
+              style={{
+                marginTop: "20px",
+                padding: "10px",
+                border: "1px solid #ccc",
+                borderRadius: "5px",
+              }}
+            >
+              <Typography variant="h6">Informations du Chargement</Typography>
+              <Typography>
+                <strong>Numéro de Bordereau :</strong>{" "}
+                {selectedChargement.numero_bordereau}
+              </Typography>
+              <Typography>
+                <strong>Numéro de Bon de Commande :</strong>{" "}
+                {selectedChargement.numero_bon_commande}
+              </Typography>
+              <Typography>
+                <strong>Date :</strong>{" "}
+                {moment(selectedChargement.date).format("DD/MM/YYYY HH:mm")}
+              </Typography>
+              <Typography>
+                <strong>Lieu :</strong> {selectedChargement.lieu_nom}
+              </Typography>
+              <Typography>
+                <strong>Poids Camion Vide :</strong>{" "}
+                {selectedChargement.poids_camion_vide}
+              </Typography>
+              <Typography>
+                <strong>Poids Camion Chargé :</strong>{" "}
+                {selectedChargement.poids_camion_charge}
+              </Typography>
+              <Typography>
+                <strong>Chauffeur :</strong> {selectedChargement.chauffeur_nom}
+              </Typography>
+              <Typography>
+                <strong>Tracteur :</strong> {selectedChargement.tracteur_immat}
+              </Typography>
+              <Typography>
+                <strong>Benne :</strong> {selectedChargement.benne_immat}
+              </Typography>
+              <Typography>
+                <strong>Produit :</strong> {selectedChargement.produit_nom}
+              </Typography>
+              <Typography>
+                <strong>Prestataire :</strong>{" "}
+                {selectedChargement.prestataire_nom}
+              </Typography>
+            </div>
+          )}
           <TextField
             margin="normal"
             fullWidth

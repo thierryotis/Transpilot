@@ -26,12 +26,20 @@ router.post("/adddechargement",isAuthenticated, canDechargement,  async (req, re
 });
 
 // Get all dechargements
+// Get all dechargements with pagination
 router.get("/getdechargements", isAuthenticated, async (req, res, next) => {
   try {
-    const dechargements = await getDechargements();
+    // Récupérer les paramètres de pagination depuis la requête
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || 25
+
+    // Appeler le modèle avec les paramètres de pagination
+    const { dechargements, total } = await getDechargements(page, limit);
+
     res.status(200).json({
       success: true,
       dechargements,
+      total
     });
   } catch (error) {
     return next(error);

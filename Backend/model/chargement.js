@@ -66,9 +66,7 @@ const getChargements = async (page = 1, limit = 20) => {
   }
 };
 
-
 // Update chargement
-
 const updateChargement = async (id, numero_bordereau, numero_bon_commande, date, lieu, poids_camion_charge, chauffeur_id,immatTracteur, immatBenne, type_produit_id, operateur_id, prestataire_id, client_id  ) => {
   try {
     const connection = await connectDatabase();
