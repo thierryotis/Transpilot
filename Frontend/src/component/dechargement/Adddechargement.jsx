@@ -16,7 +16,6 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import moment from "moment";
 import { getLieux } from "../lieu/lieu";
-
 import Cookies from "js-cookie";
 
 const defaultTheme = createTheme();
@@ -26,13 +25,11 @@ const AddDechargement = () => {
   const [numeroBonCommande, setNumeroBonCommande] = useState(0);
   const [etatCamion, setEtatCamion] = useState("");
   const [date, setDate] = useState("");
-  //const [lieuDechargement, setLieuDechargement] = useState('Nomayos');
   const [lieuDechargement, setLieuDechargement] = useState("Yaoundé");
   const [lieuxOptions, setLieuxOptions] = useState([]);
   const [poidsCamionDecharge, setPoidsCamionDecharge] = useState("");
   const [poidsCamionApresChargement, setPoidsCamionApresChargement] =
     useState("");
-  const [selectedChargement, setSelectedChargement] = useState(null);
   const [chargementId, setChargementId] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [chargements, setChargements] = useState([]);
@@ -40,24 +37,29 @@ const AddDechargement = () => {
 
   const token = Cookies.get("jwt");
 
-  //Method that gets all undecharged chargements
+  // Récupérer tous les chargements non déchargés
   const getUndeChargedChargements = async () => {
-    await axios
-      .get(`${serverUrl}/api/chargement/getundechargedchargements`, {
-        headers: {
-          Authorization: `Bearer ${token}`, // Ajoute le token dans l'en-tête Authorization de la requête
-        },
-      })
-      .then((response) => setChargements(response.data.chargements))
-      .catch((error) => {
-        console.error(error);
-        throw error;
-      });
+    try {
+      const response = await axios.get(
+        `${serverUrl}/api/chargement/getundechargedchargements`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setChargements(response.data.chargements);
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        "Erreur lors de la récupération des chargements non déchargés"
+      );
+    }
   };
 
+  // Gérer la soumission du formulaire
   const handleSubmit = (event) => {
     event.preventDefault();
-    // Vérification des champs requis
     if (
       etatCamion === "" ||
       date === "" ||
@@ -81,45 +83,24 @@ const AddDechargement = () => {
       operateur_id: operateurId,
     };
 
-    const getChargementId = () => {};
     axios
       .post(`${serverUrl}/api/dechargement/adddechargement`, data, {
         headers: {
-          Authorization: `Bearer ${token}`, // Ajoute le token dans l'en-tête Authorization de la requête
+          Authorization: `Bearer ${token}`,
         },
       })
       .then((response) => {
-        console.log(response.data); // Server response
-        toast.success("Dechargement ajouté avec succès");
+        toast.success("Déchargement ajouté avec succès");
         getUndeChargedChargements();
         resetForm();
       })
       .catch((error) => {
         console.error(error);
-        toast.error("Failed to add dechargement");
+        toast.error("Erreur lors de l'ajout du déchargement");
       });
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const lieuxData = await getLieux();
-        setLieuxOptions(lieuxData);
-      } catch (error) {
-        console.error(error);
-        // Handle error if needed
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    const token = Cookies.get("jwt");
-    setOperateurId(Cookies.get("userid"));
-    getUndeChargedChargements();
-  }, []);
-
+  // Réinitialiser le formulaire
   const resetForm = () => {
     setNumeroBordereau("");
     setNumeroBonCommande(0);
@@ -131,6 +112,7 @@ const AddDechargement = () => {
     setChargementId("");
   };
 
+  // Gérer la sélection de la date
   const handleDatePickerClick = () => {
     setShowDatePicker(true);
   };
@@ -139,6 +121,27 @@ const AddDechargement = () => {
     setDate(selectedDate);
     setShowDatePicker(false);
   };
+
+  // Récupérer les lieux et les chargements non déchargés au chargement du composant
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const lieuxData = await getLieux();
+        setLieuxOptions(lieuxData);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchData();
+    setOperateurId(Cookies.get("userid"));
+    getUndeChargedChargements();
+  }, []);
+
+  // Récupérer les détails du chargement sélectionné
+  const selectedChargement = chargements.find(
+    (c) => c.numero_bordereau === numeroBordereau
+  );
 
   return (
     <ThemeProvider theme={defaultTheme}>
@@ -158,7 +161,6 @@ const AddDechargement = () => {
                 (obj) => obj.numero_bordereau === e.target.value
               );
               setChargementId(result.id);
-              setSelectedChargement(result); // Stocker les informations du chargement sélectionné
             }}
             fullWidth
           >
@@ -168,6 +170,8 @@ const AddDechargement = () => {
               </MenuItem>
             ))}
           </Select>
+
+          {/* Afficher les détails du chargement sélectionné */}
           {selectedChargement && (
             <div
               style={{
@@ -182,16 +186,19 @@ const AddDechargement = () => {
                 <strong>Numéro de Bordereau :</strong>{" "}
                 {selectedChargement.numero_bordereau}
               </Typography>
-              <Typography>
+              {/* <Typography>
                 <strong>Numéro de Bon de Commande :</strong>{" "}
                 {selectedChargement.numero_bon_commande}
-              </Typography>
+              </Typography> */}
               <Typography>
                 <strong>Date :</strong>{" "}
                 {moment(selectedChargement.date).format("DD/MM/YYYY HH:mm")}
               </Typography>
               <Typography>
-                <strong>Lieu :</strong> {selectedChargement.lieu_nom}
+                <strong>Lieu :</strong>{" "}
+                {lieuxOptions.find(
+                  (lieu) => lieu.id === parseInt(selectedChargement.lieu)
+                )?.nom || "Inconnu"}
               </Typography>
               <Typography>
                 <strong>Poids Camion Vide :</strong>{" "}
@@ -219,7 +226,9 @@ const AddDechargement = () => {
               </Typography>
             </div>
           )}
-          <TextField
+
+          {/* Autres champs du formulaire */}
+          {/* <TextField
             margin="normal"
             fullWidth
             name="numero_bon_commande"
@@ -227,7 +236,7 @@ const AddDechargement = () => {
             id="numero_bon_commande"
             value={numeroBonCommande}
             onChange={(e) => setNumeroBonCommande(e.target.value)}
-          />
+          /> */}
           <TextField
             margin="normal"
             required
@@ -266,20 +275,10 @@ const AddDechargement = () => {
                 color="primary"
                 onClick={handleDatePickerClick}
               >
-                Selectionner
+                Sélectionner
               </Button>
             )}
           </div>
-          {/* <TextField
-            margin="normal"
-            required
-            fullWidth
-            name="lieu_dechargement"
-            label="Lieu Dechargement"
-            id="lieu_dechargement"
-            value={lieuDechargement}
-            onChange={(e) => setLieuDechargement(e.target.value)}
-          /> */}
           <InputLabel id="lieuId-label">Lieu</InputLabel>
           <Select
             labelId="LieuId-label"

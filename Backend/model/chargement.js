@@ -15,13 +15,42 @@ const addChargement = async (numero_chargement, numero_bordereau, numero_bon_com
 };
 
 // Get chargement by ID
-const getChargement = async (id) => {
+ const getChargement = async (id) => {
   try {
     const connection = await connectDatabase();
     const query = "SELECT * FROM chargements WHERE id = ?";
     const [rows] = await connection.query(query, [id]);
     connection.end();
     return rows[0]; // Return the first row (assuming ID is unique)
+  } catch (error) {
+    throw error;
+  }
+};
+const getChargementById = async (id) => {
+  try {
+    const connection = await connectDatabase();
+    const query = `
+      SELECT c.*, 
+        ch.nom as chauffeur_nom, 
+        tr.immat as tracteur_immat, 
+        bn.immat as benne_immat, 
+        p.nom as produit_nom, 
+        u.nom as user_nom, 
+        pr.nom as prestataire_nom,
+        l.nom AS lieu_nom
+      FROM chargements c
+      JOIN chauffeurs ch ON c.chauffeur_id = ch.id
+      JOIN tracteurs tr ON c.immatTracteur = tr.immat
+      JOIN bennes bn ON c.immatBenne = bn.immat
+      JOIN produits p ON c.type_produit_id = p.id
+      JOIN users u ON c.operateur_id = u.id
+      JOIN proprios pr ON c.prestataire_id = pr.id
+      JOIN lieux l ON c.lieu = l.id
+      WHERE c.id = ?;
+    `;
+    const [rows] = await connection.query(query, [id]);
+    connection.end();
+    return rows[0]; // Retourne le premier résultat (unique)
   } catch (error) {
     throw error;
   }
@@ -131,6 +160,7 @@ module.exports = {
   addChargement,
   getChargement,
   getChargements,
+  getChargementById,
   updateChargement,
   deleteChargement,
   getUndechargedChargements
