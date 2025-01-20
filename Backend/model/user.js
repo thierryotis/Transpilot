@@ -34,8 +34,8 @@ const getUsers = async () => {
 const login = async (telephone, password) => {
   try {
     const connection = await connectDatabase();
-    const query = "SELECT * FROM users WHERE telephone = ?";
-    const [rows] = await connection.query(query, [telephone]);
+    const query = "SELECT * FROM users WHERE telephone = ? OR email = ?";
+    const [rows] = await connection.query(query, [telephone, telephone]);
     connection.end();
 
     if (rows.length === 0) {
