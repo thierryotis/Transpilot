@@ -34,7 +34,7 @@ router.get("/getchargements", isAuthenticated, canChargement, async (req, res, n
   try {
     // Récupère page et limit depuis les paramètres de requête
     const page = parseInt(req.query.page, 10) || 1; // Par défaut : page 1
-    const limit = parseInt(req.query.limit, 10) || 20; // Par défaut : 20 éléments par page
+    const limit = parseInt(req.query.limit, 10) || 25; // Par défaut : 25 éléments par page
 
     // Appelle la fonction du modèle avec pagination
     const { chargements, total } = await getChargements(page, limit);

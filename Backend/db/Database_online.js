@@ -15,10 +15,10 @@ const connectDatabase = async () => {
     // Tentative de connexion à la base de données
     const connection = await mysql.createConnection({
       host: process.env.DB_HOST || "127.0.0.1", // Hôte de la base de données
-      port: process.env.PORT || 3306, // Port de la base de données
-      user: process.env.DB_USER, // Utilisateur de la base de données
+      port: process.env.DB_PORT || 3306, // Port de la base de données
+      user: process.env.DB_USER || "root", // Utilisateur de la base de données
       password: process.env.DB_PASSWORD || "", // Mot de passe de la base de données
-      database: process.env.DB_NAME, // Nom de la base de données
+      database: process.env.DB_NAME || "cementjam", // Nom de la base de données
     });
 
     console.log("Connected to the database!");

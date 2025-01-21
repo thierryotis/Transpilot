@@ -23,19 +23,19 @@ import { RoleContext } from "../../RoleContext";
 
 const modalStyles = {
   content: {
-    width: "400px", // Adjust the width as needed
-    height: "200px", // Adjust the height as needed
+    width: "400px",
+    height: "200px",
     margin: "auto",
   },
 };
 
 const GetChargements = () => {
-  Modal.setAppElement("#root"); // Replace '#root' with the ID of your root element
+  Modal.setAppElement("#root");
   const userRole = useContext(RoleContext);
   const [chargements, setChargements] = useState([]);
-  const [page, setPage] = useState(1); // Page initiale définie à 1
-  const [limit, setLimit] = useState(20); // Nombre d'éléments par page
-  const [total, setTotal] = useState(0); // Nombre total d'éléments
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(25);
+  const [total, setTotal] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedChargement, setSelectedChargement] = useState(null);
   const [loadingInProgress, setLoading] = useState(false);
@@ -56,18 +56,17 @@ const GetChargements = () => {
     axios
       .delete(`${serverUrl}/api/chargement/deletechargement/${id}`, {
         headers: {
-          Authorization: `Bearer ${token}`, // Ajoute le token dans l'en-tête Authorization de la requête
+          Authorization: `Bearer ${token}`,
         },
       })
       .then((response) => {
         if (response.data.success) {
           toast.success("Chargement deleted successfully");
-          // Refresh the list of chargements after deletion
           const token = Cookies.get("jwt");
           axios
             .get(`${serverUrl}/api/chargement/getchargements`, {
               headers: {
-                Authorization: `Bearer ${token}`, // Ajoute le token dans l'en-tête Authorization de la requête
+                Authorization: `Bearer ${token}`,
               },
             })
             .then((response) => {
@@ -85,11 +84,7 @@ const GetChargements = () => {
       })
       .catch((error) => {
         console.error(error);
-
         toast.error("An error occurred while deleting the chargement");
-
-        toast.error("An error occurred while deleting the dechargement");
-
         setTimeout(() => {
           closeModal();
         }, 1000);
@@ -97,7 +92,7 @@ const GetChargements = () => {
   };
 
   useEffect(() => {
-    const fetchData = async (page = 1) => {
+    const fetchData = async () => {
       setLoading(true);
       const token = Cookies.get("jwt");
       try {
@@ -116,7 +111,7 @@ const GetChargements = () => {
       }
     };
     fetchData();
-  }, [page]); // Ajoutez 'page' pour changer la page dans le state.
+  }, [page, limit]); // Déclenche fetchData à chaque changement de `page` ou `limit`
 
   return (
     <>
@@ -139,7 +134,7 @@ const GetChargements = () => {
                 <TableCell>Chauffeur</TableCell>
                 <TableCell>Pdt</TableCell>
                 <TableCell>Prestataire</TableCell>
-                {userRole == "admin" && <TableCell>Actions</TableCell>}
+                {userRole === "admin" && <TableCell>Actions</TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -155,7 +150,7 @@ const GetChargements = () => {
                   <TableCell>{chargement.chauffeur_nom}</TableCell>
                   <TableCell>{chargement.produit_nom}</TableCell>
                   <TableCell>{chargement.prestataire_nom}</TableCell>
-                  {userRole == "admin" && (
+                  {userRole === "admin" && (
                     <TableCell>
                       <Button
                         onClick={() => {
@@ -175,7 +170,7 @@ const GetChargements = () => {
             </TableBody>
           </Table>
           <div>
-            <Button onClick={() => setPage(page - 1)} disabled={page === 1}>
+            <Button onClick={() => setPage((prev) => Math.max(prev - 1, 1))} disabled={page === 1}>
               Previous
             </Button>
             {Array.from({ length: Math.ceil(total / limit) }, (_, i) => (
@@ -188,7 +183,7 @@ const GetChargements = () => {
               </Button>
             ))}
             <Button
-              onClick={() => setPage(page + 1)}
+              onClick={() => setPage((prev) => Math.min(prev + 1, Math.ceil(total / limit)))}
               disabled={page === Math.ceil(total / limit)}
             >
               Next

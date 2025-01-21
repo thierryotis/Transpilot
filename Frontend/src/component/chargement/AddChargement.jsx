@@ -352,7 +352,7 @@ const AddChargement = () => {
             InputProps={{
               readOnly: true,
               style: {
-                color: poidsChargement > 45 ? "red" : "inherit",
+                color: poidsChargement > 45000 ? "red" : "inherit",
               },
             }}
             onChange={(e) => setPoidsChargement(e.target.value)}
