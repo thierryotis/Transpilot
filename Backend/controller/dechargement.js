@@ -10,11 +10,14 @@ const jwt = require("jsonwebtoken");
 // Add dechargement
 router.post("/adddechargement",isAuthenticated, canDechargement,  async (req, res, next) => {
   try {
-    const { numero_bordereau, numero_bon_commande, etat_camion, date, lieu_dechargement, poids_camion_decharge, poids_camion_apres_chargement,  chargement_id, operateur_id, } = req.body;
-
+    const { numero_bordereau, numero_bon_commande, etat_camion, date, lieu_dechargement, poids_camion_decharge, poids_camion_apres_chargement,  chargement_id, operateur_id, commentaire, dateEnregistrement} = req.body;
+    
     let formattedDate = new Date(date);
+    let dateEnreg = new Date (dateEnregistrement)
     formattedDate = formattedDate.toISOString().slice(0, 19).replace('T', ' ');
-    const dechargementId = await addDechargement(numero_bordereau, numero_bon_commande, etat_camion, formattedDate,lieu_dechargement, poids_camion_decharge, poids_camion_apres_chargement,  chargement_id, operateur_id);
+    dateEnreg = dateEnreg.toISOString().slice(0, 19).replace('T', ' ');
+    
+    const dechargementId = await addDechargement(numero_bordereau, numero_bon_commande, etat_camion, formattedDate,lieu_dechargement, poids_camion_decharge, poids_camion_apres_chargement, chargement_id, operateur_id, commentaire, dateEnreg);
     res.status(201).json({
       success: true,
       message: "Déchargement ajouté avec succès",

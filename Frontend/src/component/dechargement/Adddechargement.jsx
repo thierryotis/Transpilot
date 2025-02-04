@@ -28,8 +28,7 @@ const AddDechargement = () => {
   const [lieuDechargement, setLieuDechargement] = useState("Yaoundé");
   const [lieuxOptions, setLieuxOptions] = useState([]);
   const [poidsCamionDecharge, setPoidsCamionDecharge] = useState("");
-  const [poidsCamionApresChargement, setPoidsCamionApresChargement] =
-    useState("");
+  const [poidsCamionApresChargement, setPoidsCamionApresChargement] = useState("");
   const [chargementId, setChargementId] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showDatePicker2, setShowDatePicker2] = useState(false);
