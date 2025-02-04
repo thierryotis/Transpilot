@@ -32,8 +32,11 @@ const AddDechargement = () => {
     useState("");
   const [chargementId, setChargementId] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showDatePicker2, setShowDatePicker2] = useState(false);
   const [chargements, setChargements] = useState([]);
   const [operateurId, setOperateurId] = useState("");
+  const [dateEnregistrement, setDateEnregistrement] = useState("");
+  const [commentaire, setCommentaire] = useState("");
 
   const token = Cookies.get("jwt");
 
@@ -71,6 +74,13 @@ const AddDechargement = () => {
       return;
     }
 
+    if (dateEnregistrement > date) {
+      toast.error(
+        "La date d'enregistrement doit être antérieure à la date du déchargement."
+      );
+      return;
+    }
+
     const data = {
       numero_bordereau: numeroBordereau,
       numero_bon_commande: numeroBonCommande,
@@ -81,6 +91,8 @@ const AddDechargement = () => {
       poids_camion_apres_chargement: poidsCamionApresChargement,
       chargement_id: chargementId,
       operateur_id: operateurId,
+      commentaire : commentaire, 
+      dateEnregistrement : dateEnregistrement
     };
 
     axios
@@ -117,9 +129,18 @@ const AddDechargement = () => {
     setShowDatePicker(true);
   };
 
+  const handleDatePickerClick2 = () => {
+    setShowDatePicker2(true);
+  };
+
   const handleDatePickerChange = (selectedDate) => {
     setDate(selectedDate);
     setShowDatePicker(false);
+  };
+
+  const handleDatePickerChange2 = (selectedDate) => {
+    setDateEnregistrement(selectedDate);
+    setShowDatePicker2(false);
   };
 
   // Récupérer les lieux et les chargements non déchargés au chargement du composant
@@ -251,8 +272,40 @@ const AddDechargement = () => {
             margin="normal"
             required
             fullWidth
+            name="dateEnregistrement"
+            label="Date d'enregistrement - à l'arrivée du camion"
+            id="dateEnregistrement"
+            value={dateEnregistrement}
+            InputProps={{
+              readOnly: true,
+            }}
+          />
+          <div className="wrapper">
+            {showDatePicker2 ? (
+              <DatePicker
+                selected={dateEnregistrement}
+                showTimeSelect
+                timeFormat="HH:mm"
+                timeIntervals={15}
+                onChange={handleDatePickerChange2}
+                inline
+              />
+            ) : (
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={handleDatePickerClick2}
+              >
+                Sélectionner
+              </Button>
+            )}
+          </div>
+          <TextField
+            margin="normal"
+            required
+            fullWidth
             name="date"
-            label="Date"
+            label="Date du déchargement effectif"
             id="date"
             value={date}
             InputProps={{
@@ -279,6 +332,7 @@ const AddDechargement = () => {
               </Button>
             )}
           </div>
+
           <InputLabel id="lieuId-label">Lieu</InputLabel>
           <Select
             labelId="LieuId-label"
@@ -293,6 +347,7 @@ const AddDechargement = () => {
               </MenuItem>
             ))}
           </Select>
+
           <TextField
             margin="normal"
             required
@@ -313,10 +368,24 @@ const AddDechargement = () => {
             value={poidsCamionDecharge}
             onChange={(e) => setPoidsCamionDecharge(e.target.value)}
           />
-          <Typography>
-            <strong>Poids :</strong>{" "}
-            {poidsCamionApresChargement - poidsCamionDecharge}
-          </Typography>
+          {(poidsCamionApresChargement !== null ||
+            poidsCamionDecharge !== null) && (
+            <Typography>
+              <strong>Poids du Produit :</strong>{" "}
+              {poidsCamionApresChargement - poidsCamionDecharge}
+            </Typography>
+          )}
+          <TextField
+            margin="normal"
+            fullWidth
+            name="commentaire"
+            label="Commentaires / Raisons du retard du déchargement"
+            id="commentaire"
+            value={commentaire}
+            onChange={(e) => setCommentaire(e.target.value)}
+            multiline
+            rows={3}
+          />
           <Button type="submit" fullWidth variant="contained" color="primary">
             Ajouter
           </Button>
