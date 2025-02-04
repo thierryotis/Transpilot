@@ -200,14 +200,14 @@ const AddDechargement = () => {
                   (lieu) => lieu.id === parseInt(selectedChargement.lieu)
                 )?.nom || "Inconnu"}
               </Typography>
-              <Typography>
+              {/* <Typography>
                 <strong>Poids Camion Vide :</strong>{" "}
                 {selectedChargement.poids_camion_vide}
               </Typography>
               <Typography>
                 <strong>Poids Camion Chargé :</strong>{" "}
                 {selectedChargement.poids_camion_charge}
-              </Typography>
+              </Typography> */}
               <Typography>
                 <strong>Chauffeur :</strong> {selectedChargement.chauffeur_nom}
               </Typography>
@@ -297,22 +297,26 @@ const AddDechargement = () => {
             margin="normal"
             required
             fullWidth
-            name="poids_camion_decharge"
-            label="Poids camion vide"
-            id="poids_camion_decharge"
-            value={poidsCamionDecharge}
-            onChange={(e) => setPoidsCamionDecharge(e.target.value)}
+            name="poids_camion_apres_chargement"
+            label="Poids Camion chargé - A l'arrivée"
+            id="poids_camion_apres_chargement"
+            value={poidsCamionApresChargement}
+            onChange={(e) => setPoidsCamionApresChargement(e.target.value)}
           />
           <TextField
             margin="normal"
             required
             fullWidth
-            name="poids_camion_apres_chargement"
-            label="Poids Camion chargé"
-            id="poids_camion_apres_chargement"
-            value={poidsCamionApresChargement}
-            onChange={(e) => setPoidsCamionApresChargement(e.target.value)}
+            name="poids_camion_decharge"
+            label="Poids camion vide - Après déchargement"
+            id="poids_camion_decharge"
+            value={poidsCamionDecharge}
+            onChange={(e) => setPoidsCamionDecharge(e.target.value)}
           />
+          <Typography>
+            <strong>Poids :</strong>{" "}
+            {poidsCamionApresChargement - poidsCamionDecharge}
+          </Typography>
           <Button type="submit" fullWidth variant="contained" color="primary">
             Ajouter
           </Button>
