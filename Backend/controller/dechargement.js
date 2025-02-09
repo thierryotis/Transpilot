@@ -11,7 +11,7 @@ const jwt = require("jsonwebtoken");
 router.post("/adddechargement",isAuthenticated, canDechargement,  async (req, res, next) => {
   try {
     const { numero_bordereau, numero_bon_commande, etat_camion, date, lieu_dechargement, poids_camion_decharge, poids_camion_apres_chargement,  chargement_id, operateur_id, commentaire, dateEnregistrement} = req.body;
-    
+    console.table(req.body)
     let formattedDate = new Date(date);
     let dateEnreg = new Date (dateEnregistrement)
     formattedDate = formattedDate.toISOString().slice(0, 19).replace('T', ' ');
@@ -34,7 +34,7 @@ router.get("/getdechargements", isAuthenticated, async (req, res, next) => {
   try {
     // Récupérer les paramètres de pagination depuis la requête
     const page = parseInt(req.query.page) || 1
-    const limit = parseInt(req.query.limit) || 25
+    const limit = parseInt(req.query.limit) || 100
 
     // Appeler le modèle avec les paramètres de pagination
     const { dechargements, total } = await getDechargements(page, limit);

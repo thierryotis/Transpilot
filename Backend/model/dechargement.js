@@ -5,7 +5,7 @@ const addDechargement = async (numero_bordereau, numero_bon_commande, etat_camio
   try {
     const connection = await connectDatabase();
     const query = "INSERT INTO dechargements (numero_bordereau, numero_bon_commande, etat_camion,date, lieu_dechargement, poids_camion_decharge, poids_camion_apres_chargement,  chargement_id, operateur_id, commentaire, heure_enregistrement) VALUES (?, ?, ?,?,  ?, ?, ?, ?, ?, ?, ?)";
-    const [result] = await connection.query(query, [numero_bordereau, numero_bon_commande, etat_camion,date, lieu_dechargement, poids_camion_decharge, poids_camion_apres_chargement,  chargement_id, operateur_id, commentaire, dateEnreg]);
+    const [result] = await connection.query(query, [numero_bordereau, numero_bon_commande, etat_camion,date, lieu_dechargement, poids_camion_apres_chargement, poids_camion_decharge,  chargement_id, operateur_id, commentaire, dateEnreg]);
     connection.end(); // Close the connection after query execution
     return result.insertId;
   } catch (error) {

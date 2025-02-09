@@ -30,7 +30,7 @@ const getChauffeur = async (id) => {
 const getChauffeurs = async () => {
   try {
     const connection = await connectDatabase();
-    const query = "SELECT chauffeurs.*, proprios.nom AS proprio_nom FROM chauffeurs INNER JOIN proprios ON chauffeurs.proprio_id = proprios.id";
+    const query = "SELECT chauffeurs.*, proprios.nom AS proprio_nom FROM chauffeurs INNER JOIN proprios ON chauffeurs.proprio_id = proprios.id ORDER BY chauffeurs.nom ASC";
     const [rows] = await connection.query(query);
     connection.end();
     return rows;

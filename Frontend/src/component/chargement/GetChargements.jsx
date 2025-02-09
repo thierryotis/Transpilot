@@ -34,7 +34,7 @@ const GetChargements = () => {
   const userRole = useContext(RoleContext);
   const [chargements, setChargements] = useState([]);
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(25);
+  const [limit, setLimit] = useState(100);
   const [total, setTotal] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedChargement, setSelectedChargement] = useState(null);

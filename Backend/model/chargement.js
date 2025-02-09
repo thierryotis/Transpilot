@@ -56,7 +56,7 @@ const getChargementById = async (id) => {
   }
 };
 
-const getChargements = async (page = 1, limit = 25) => {
+const getChargements = async (page = 1, limit = 100) => {
   try {
     const offset = (page - 1) * limit;
     const connection = await connectDatabase();

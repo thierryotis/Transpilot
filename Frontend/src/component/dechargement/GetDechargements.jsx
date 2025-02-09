@@ -9,11 +9,12 @@ import { toast } from 'react-toastify';
 import { serverUrl } from '../../server';
 import Cookies from 'js-cookie';
 import { RoleContext } from '../../RoleContext';
+import ClipLoader from 'react-spinners/ClipLoader';
 
 const modalStyles = {
   content: {
-    width: '400px', // Adjust the width as needed
-    height: '200px', // Adjust the height as needed
+    width: '400px',
+    height: '200px',
     margin: 'auto',
   },
 };
@@ -24,9 +25,10 @@ const GetDechargements = () => {
   const [dechargements, setDechargements] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedDechargement, setSelectedDechargement] = useState(null);
-  const [page, setPage] = useState(1); 
-  const [limit, setLimit] = useState(25); 
-  const [total, setTotal] = useState(0); 
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(100);
+  const [total, setTotal] = useState(0);
+  const [loadingInProgress, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const openModal = (dechargement) => {
@@ -49,8 +51,8 @@ const GetDechargements = () => {
       })
       .then((response) => {
         if (response.data.success) {
-          toast.success('Dechargement supprimé avec succès');
-          fetchDechargements(page); // Rafraîchir la liste après suppression
+          toast.success('Déchargement supprimé avec succès');
+          fetchDechargements(page);
           setTimeout(() => {
             closeModal();
           }, 1000);
@@ -67,99 +69,101 @@ const GetDechargements = () => {
       });
   };
 
-  const fetchDechargements = (page) => {
+  const fetchDechargements = async (page) => {
+    setLoading(true);
     const token = Cookies.get('jwt');
-    axios
-      .get(`${serverUrl}/api/dechargement/getdechargements?page=${page}&limit=${limit}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((response) => {
-        setDechargements(response.data.dechargements);
-        setTotal(response.data.total); // Mettre à jour le nombre total d'éléments
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+    try {
+      const response = await axios.get(
+        `${serverUrl}/api/dechargement/getdechargements?page=${page}&limit=${limit}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setDechargements(response.data.dechargements);
+      setTotal(response.data.total);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    fetchDechargements(page); // Charger les données de la page actuelle
+    fetchDechargements(page);
   }, [page, limit]);
-
-  const handlePageChange = (newPage) => {
-    setPage(newPage);
-  };
 
   return (
     <>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>N°</TableCell>
-              <TableCell>Bord.</TableCell>
-              <TableCell>Etat Camion</TableCell>
-              <TableCell>Date</TableCell>
-              <TableCell>Lieu</TableCell>
-              <TableCell>Pds Camion - Pesée à plein</TableCell>
-              <TableCell>Poids Camion - Pesée à vide</TableCell>
-              <TableCell>Poids Chargement</TableCell>
-              {userRole === 'admin' && <TableCell>Actions</TableCell>}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {dechargements.map((dechargement, i) => (
-              <TableRow key={dechargement.id}>
-                <TableCell>{(page - 1) * limit + i + 1}</TableCell>
-                <TableCell>{dechargement.numero_bordereau}</TableCell>
-                <TableCell>{dechargement.etat_camion}</TableCell>
-                <TableCell>{dechargement.date}</TableCell>
-                <TableCell>{dechargement.lieu_nom}</TableCell>
-                <TableCell>{dechargement.poids_camion_decharge}</TableCell>
-                <TableCell>{dechargement.poids_camion_apres_chargement}</TableCell>
-                <TableCell>{dechargement.poids_camion_decharge - dechargement.poids_camion_apres_chargement}</TableCell>
-                {userRole === 'admin' && (
-                  <TableCell>
-                    <Button
-                      onClick={() => {
-                        Cookies.set('dechargement', JSON.stringify(dechargement));
-                        navigate('/dashboard/modifydechargement');
-                      }}
-                    >
-                      <EditIcon />
-                    </Button>
-                    <Button onClick={() => openModal(dechargement)}>
-                      <DeleteIcon />
-                    </Button>
-                  </TableCell>
-                )}
+      {loadingInProgress ? (
+        <div className="loader-container">
+          <ClipLoader color={"#fff"} size={150} />
+        </div>
+      ) : (
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>N°</TableCell>
+                <TableCell>Bord.</TableCell>
+                <TableCell>Etat Camion</TableCell>
+                <TableCell>Date</TableCell>
+                <TableCell>Lieu</TableCell>
+                <TableCell>Pds Camion - Pesée à plein</TableCell>
+                <TableCell>Poids Camion - Pesée à vide</TableCell>
+                <TableCell>Poids Chargement</TableCell>
+                {userRole === 'admin' && <TableCell>Actions</TableCell>}
               </TableRow>
+            </TableHead>
+            <TableBody>
+              {dechargements.map((dechargement, i) => (
+                <TableRow key={dechargement.id}>
+                  <TableCell>{(page - 1) * limit + i + 1}</TableCell>
+                  <TableCell>{dechargement.numero_bordereau}</TableCell>
+                  <TableCell>{dechargement.etat_camion}</TableCell>
+                  <TableCell>{dechargement.date}</TableCell>
+                  <TableCell>{dechargement.lieu_nom}</TableCell>
+                  <TableCell>{dechargement.poids_camion_decharge}</TableCell>
+                  <TableCell>{dechargement.poids_camion_apres_chargement}</TableCell>
+                  <TableCell>{dechargement.poids_camion_decharge - dechargement.poids_camion_apres_chargement}</TableCell>
+                  {userRole === 'admin' && (
+                    <TableCell>
+                      <Button
+                        onClick={() => {
+                          Cookies.set('dechargement', JSON.stringify(dechargement));
+                          navigate('/dashboard/modifydechargement');
+                        }}
+                      >
+                        <EditIcon />
+                      </Button>
+                      <Button onClick={() => openModal(dechargement)}>
+                        <DeleteIcon />
+                      </Button>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+
+          <div style={{ marginTop: '20px', textAlign: 'center' }}>
+            <Button onClick={() => setPage(Math.max(page - 1, 1))} disabled={page === 1}>
+              Précédent
+            </Button>
+            {Array.from({ length: Math.ceil(total / limit) }, (_, i) => (
+              <Button
+                key={i + 1}
+                onClick={() => setPage(i + 1)}
+                disabled={page === i + 1}
+              >
+                {i + 1}
+              </Button>
             ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-      {/* Pagination */}
-      <div style={{ marginTop: '20px', textAlign: 'center' }}>
-        <Button
-          onClick={() => handlePageChange(page - 1)}
-          disabled={page === 1}
-        >
-          Précédent
-        </Button>
-        <span style={{ margin: '0 10px' }}>
-          Page {page} sur {Math.ceil(total / limit)}
-        </span>
-        <Button
-          onClick={() => handlePageChange(page + 1)}
-          disabled={page === Math.ceil(total / limit)}
-        >
-          Suivant
-        </Button>
-      </div>
-
+            <Button onClick={() => setPage(Math.min(page + 1, Math.ceil(total / limit)))} disabled={page === Math.ceil(total / limit)}>
+              Suivant
+            </Button>
+          </div>
+        </TableContainer>
+      )}
       <Modal isOpen={modalOpen} onRequestClose={closeModal} ariaHideApp={false} style={modalStyles}>
         {selectedDechargement && (
           <>
