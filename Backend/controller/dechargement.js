@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { addDechargement, getDechargements, getDechargementById, updateDechargement, deleteDechargement } = require("../model/dechargement");
+const { addDechargement, getDechargements, getDechargementById, updateDechargement, deleteDechargement, getDechargementByBordereau } = require("../model/dechargement");
 const {canDechargement} = require('../middleware/abilities')
 const {isAuthenticated} = require('../middleware/auth')
 const jwt = require("jsonwebtoken");
@@ -57,7 +57,29 @@ router.get("/getdechargement/:id", async (req, res, next) => {
     if (dechargement) {
       res.status(200).json({
         success: true,
-        dechargement,
+        dechargements : dechargement,
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: "Déchargement non trouvé",
+      });
+    }
+  } catch (error) {
+    return next(error);
+  }
+});
+
+// Get a dechargement by bordereau
+router.get("/getdechargementbordereau/:numero_bordereau", async (req, res, next) => {
+  
+  try {
+    const { numero_bordereau } = req.params;
+    const dechargement = await getDechargementByBordereau(numero_bordereau);
+    if (dechargement) {
+      res.status(200).json({
+        success: true,
+        dechargements : dechargement,
       });
     } else {
       res.status(404).json({

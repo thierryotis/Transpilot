@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
-const { addChargement, getChargements, getChargementById, updateChargement, deleteChargement, getUndechargedChargements } = require("../model/chargement");
+const { getChargementByBordereau, addChargement, getChargements, getChargementById, updateChargement, deleteChargement, getUndechargedChargements } = require("../model/chargement");
 const {getDechargementByChargement} = require('../model/dechargement')
 const {isAuthenticated} = require('../middleware/auth')
 const {canChargement} = require('../middleware/abilities')
@@ -75,6 +75,27 @@ router.get("/getchargement/:id", async (req, res, next) => {
       res.status(200).json({
         success: true,
         chargement,
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: "Chargement non trouvé",
+      });
+    }
+  } catch (error) {
+    return next(error);
+  }
+});
+
+// Get a chargement by bordereau
+router.get("/getchargementbordereau/:numero_bordereau", async (req, res, next) => {
+  try {
+    const { numero_bordereau } = req.params;
+    const chargement = await getChargementByBordereau(numero_bordereau);
+    if (chargement) {
+      res.status(200).json({
+        success: true,
+        chargements:chargement,
       });
     } else {
       res.status(404).json({

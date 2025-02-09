@@ -11,6 +11,9 @@ import {
   TableRow,
   Paper,
   Button,
+  Container,
+  TextField,
+  Box,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
@@ -39,6 +42,8 @@ const GetChargements = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedChargement, setSelectedChargement] = useState(null);
   const [loadingInProgress, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const token = Cookies.get("jwt");
   const navigate = useNavigate();
 
   const openModal = (chargement) => {
@@ -91,10 +96,38 @@ const GetChargements = () => {
       });
   };
 
+  const fetchByBordereau = async () => {
+    if (searchQuery === "") {
+      toast.error("Le champs de recherche ne doit pas être vide");
+    } else {
+      try {
+        const response = await axios.get(
+          `${serverUrl}/api/chargement/getchargementbordereau/${searchQuery}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (response.data.success) {
+          setChargements(
+            Array.isArray(response.data.chargements)
+              ? response.data.chargements
+              : [response.data.chargements]
+          );
+          setTotal(1);
+        } else {
+          setChargements([]); // Vide la liste si rien n'est trouvé
+          toast.error("Chargement non trouvé");
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      const token = Cookies.get("jwt");
+      
       try {
         const response = await axios.get(
           `${serverUrl}/api/chargement/getchargements?page=${page}&limit=${limit}`,
@@ -115,99 +148,134 @@ const GetChargements = () => {
 
   return (
     <>
-      {loadingInProgress ? (
-        <div className="loader-container">
-          <ClipLoader color={"#fff"} size={150} />
-        </div>
-      ) : (
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>N°</TableCell>
-                <TableCell>Bord.</TableCell>
-                <TableCell>Date</TableCell>
-                <TableCell>Lieu</TableCell>
-                <TableCell>Poids</TableCell>
-                <TableCell>Tracteur</TableCell>
-                <TableCell>Benne</TableCell>
-                <TableCell>Chauffeur</TableCell>
-                <TableCell>Pdt</TableCell>
-                <TableCell>Prestataire</TableCell>
-                {userRole === "admin" && <TableCell>Actions</TableCell>}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {chargements.map((chargement, index) => (
-                <TableRow key={chargement.id}>
-                  <TableCell>{(page - 1) * limit + index + 1}</TableCell>
-                  <TableCell>{chargement.numero_bordereau}</TableCell>
-                  <TableCell>{chargement.date}</TableCell>
-                  <TableCell>{chargement.lieu_nom}</TableCell>
-                  <TableCell>{chargement.poids_camion_charge}</TableCell>
-                  <TableCell>{chargement.immatTracteur}</TableCell>
-                  <TableCell>{chargement.immatBenne}</TableCell>
-                  <TableCell>{chargement.chauffeur_nom}</TableCell>
-                  <TableCell>{chargement.produit_nom}</TableCell>
-                  <TableCell>{chargement.prestataire_nom}</TableCell>
-                  {userRole === "admin" && (
-                    <TableCell>
-                      <Button
-                        onClick={() => {
-                          Cookies.set("chargement", JSON.stringify(chargement));
-                          navigate("/dashboard/updatechargement");
-                        }}
-                      >
-                        <EditIcon />
-                      </Button>
-                      <Button onClick={() => openModal(chargement)}>
-                        <DeleteIcon />
-                      </Button>
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <div>
-            <Button onClick={() => setPage((prev) => Math.max(prev - 1, 1))} disabled={page === 1}>
-              Previous
-            </Button>
-            {Array.from({ length: Math.ceil(total / limit) }, (_, i) => (
-              <Button
-                key={i + 1}
-                onClick={() => setPage(i + 1)}
-                disabled={page === i + 1}
-              >
-                {i + 1}
-              </Button>
-            ))}
-            <Button
-              onClick={() => setPage((prev) => Math.min(prev + 1, Math.ceil(total / limit)))}
-              disabled={page === Math.ceil(total / limit)}
-            >
-              Next
-            </Button>
+      <Container sx={{ mt: 3 }}>
+        <Box
+          display="flex"
+          alignItems="center"
+          gap={2}
+          width="60%"
+          sx={{ mb: 3 }}
+        >
+          <TextField
+            label="Rechercher par numéro de bordereau"
+            variant="outlined"
+            fullWidth
+            size="small"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <Button
+            onClick={fetchByBordereau}
+            variant="contained"
+            color="primary"
+          >
+            Rechercher
+          </Button>
+        </Box>
+        {loadingInProgress ? (
+          <div className="loader-container">
+            <ClipLoader color={"#fff"} size={150} />
           </div>
-        </TableContainer>
-      )}
-      <Modal
-        isOpen={modalOpen}
-        onRequestClose={closeModal}
-        ariaHideApp={false}
-        style={modalStyles}
-      >
-        {selectedChargement && (
-          <>
-            <h2>Confirmation</h2>
-            <p>Supprimer le chargement?</p>
-            <Button onClick={() => deleteChargement(selectedChargement.id)}>
-              Confirm
-            </Button>
-            <Button onClick={closeModal}>Cancel</Button>
-          </>
+        ) : (
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>N°</TableCell>
+                  <TableCell>Bord.</TableCell>
+                  <TableCell>Date</TableCell>
+                  <TableCell>Lieu</TableCell>
+                  <TableCell>Poids</TableCell>
+                  <TableCell>Tracteur</TableCell>
+                  <TableCell>Benne</TableCell>
+                  <TableCell>Chauffeur</TableCell>
+                  <TableCell>Pdt</TableCell>
+                  <TableCell>Prestataire</TableCell>
+                  {userRole === "admin" && <TableCell>Actions</TableCell>}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {chargements.map((chargement, index) => (
+                  <TableRow key={chargement.id}>
+                    <TableCell>{(page - 1) * limit + index + 1}</TableCell>
+                    <TableCell>{chargement.numero_bordereau}</TableCell>
+                    <TableCell>{chargement.date}</TableCell>
+                    <TableCell>{chargement.lieu_nom}</TableCell>
+                    <TableCell>{chargement.poids_camion_charge}</TableCell>
+                    <TableCell>{chargement.immatTracteur}</TableCell>
+                    <TableCell>{chargement.immatBenne}</TableCell>
+                    <TableCell>{chargement.chauffeur_nom}</TableCell>
+                    <TableCell>{chargement.produit_nom}</TableCell>
+                    <TableCell>{chargement.prestataire_nom}</TableCell>
+                    {userRole === "admin" && (
+                      <TableCell>
+                        <Button
+                          onClick={() => {
+                            Cookies.set(
+                              "chargement",
+                              JSON.stringify(chargement)
+                            );
+                            navigate("/dashboard/updatechargement");
+                          }}
+                        >
+                          <EditIcon />
+                        </Button>
+                        <Button onClick={() => openModal(chargement)}>
+                          <DeleteIcon />
+                        </Button>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            <div>
+              <Button
+                onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                disabled={page === 1}
+              >
+                Previous
+              </Button>
+              {Array.from({ length: Math.ceil(total / limit) }, (_, i) => (
+                <Button
+                  key={i + 1}
+                  onClick={() => setPage(i + 1)}
+                  disabled={page === i + 1}
+                >
+                  {i + 1}
+                </Button>
+              ))}
+              <Button
+                onClick={() =>
+                  setPage((prev) =>
+                    Math.min(prev + 1, Math.ceil(total / limit))
+                  )
+                }
+                disabled={page === Math.ceil(total / limit)}
+              >
+                Next
+              </Button>
+            </div>
+          </TableContainer>
         )}
-      </Modal>
+        <Modal
+          isOpen={modalOpen}
+          onRequestClose={closeModal}
+          ariaHideApp={false}
+          style={modalStyles}
+        >
+          {selectedChargement && (
+            <>
+              <h2>Confirmation</h2>
+              <p>Supprimer le chargement?</p>
+              <Button onClick={() => deleteChargement(selectedChargement.id)}>
+                Confirm
+              </Button>
+              <Button onClick={closeModal}>Cancel</Button>
+            </>
+          )}
+        </Modal>
+      </Container>
     </>
   );
 };

@@ -56,6 +56,35 @@ const getChargementById = async (id) => {
   }
 };
 
+const getChargementByBordereau = async (numero_bordereau) => {
+  try {
+    const connection = await connectDatabase();
+    const query = `
+      SELECT c.*, 
+        ch.nom AS chauffeur_nom, 
+        p.nom AS produit_nom, 
+        u.nom AS user_nom, 
+        pr.nom AS prestataire_nom,
+        l.nom AS lieu_nom
+      FROM chargements c
+      JOIN chauffeurs ch ON c.chauffeur_id = ch.id
+      JOIN produits p ON c.type_produit_id = p.id
+      JOIN users u ON c.operateur_id = u.id
+      JOIN proprios pr ON c.prestataire_id = pr.id
+      JOIN lieux l ON c.lieu = l.id
+      WHERE TRIM(c.numero_bordereau) = ?;
+    `;
+
+    const [result] = await connection.query(query, [numero_bordereau]);
+    await connection.end(); 
+    console.table(numero_bordereau)
+    return result.length > 0 ? result[0] : null;
+  } catch (error) {
+    throw error;
+  }
+};
+
+
 const getChargements = async (page = 1, limit = 100) => {
   try {
     const offset = (page - 1) * limit;
@@ -163,5 +192,6 @@ module.exports = {
   getChargementById,
   updateChargement,
   deleteChargement,
-  getUndechargedChargements
+  getUndechargedChargements,
+  getChargementByBordereau
 };

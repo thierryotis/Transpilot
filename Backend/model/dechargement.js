@@ -1,11 +1,36 @@
-const connectDatabase = require('../db/Database_online');
+const connectDatabase = require("../db/Database_online");
 
 // Add dechargement
-const addDechargement = async (numero_bordereau, numero_bon_commande, etat_camion, date, lieu_dechargement, poids_camion_decharge, poids_camion_apres_chargement,  chargement_id, operateur_id, commentaire, dateEnreg) => {
+const addDechargement = async (
+  numero_bordereau,
+  numero_bon_commande,
+  etat_camion,
+  date,
+  lieu_dechargement,
+  poids_camion_decharge,
+  poids_camion_apres_chargement,
+  chargement_id,
+  operateur_id,
+  commentaire,
+  dateEnreg
+) => {
   try {
     const connection = await connectDatabase();
-    const query = "INSERT INTO dechargements (numero_bordereau, numero_bon_commande, etat_camion,date, lieu_dechargement, poids_camion_decharge, poids_camion_apres_chargement,  chargement_id, operateur_id, commentaire, heure_enregistrement) VALUES (?, ?, ?,?,  ?, ?, ?, ?, ?, ?, ?)";
-    const [result] = await connection.query(query, [numero_bordereau, numero_bon_commande, etat_camion,date, lieu_dechargement, poids_camion_apres_chargement, poids_camion_decharge,  chargement_id, operateur_id, commentaire, dateEnreg]);
+    const query =
+      "INSERT INTO dechargements (numero_bordereau, numero_bon_commande, etat_camion,date, lieu_dechargement, poids_camion_decharge, poids_camion_apres_chargement,  chargement_id, operateur_id, commentaire, heure_enregistrement) VALUES (?, ?, ?,?,  ?, ?, ?, ?, ?, ?, ?)";
+    const [result] = await connection.query(query, [
+      numero_bordereau,
+      numero_bon_commande,
+      etat_camion,
+      date,
+      lieu_dechargement,
+      poids_camion_apres_chargement,
+      poids_camion_decharge,
+      chargement_id,
+      operateur_id,
+      commentaire,
+      dateEnreg,
+    ]);
     connection.end(); // Close the connection after query execution
     return result.insertId;
   } catch (error) {
@@ -54,7 +79,7 @@ const getDechargements = async (page, limit) => {
 
     return {
       dechargements: rows,
-      total: totalRows[0].total
+      total: totalRows[0].total,
     };
   } catch (error) {
     throw error;
@@ -62,18 +87,38 @@ const getDechargements = async (page, limit) => {
 };
 
 // Update dechargement
-const updateDechargement = async (id, numero_bordereau, numero_bon_commande, etat_camion, lieu_dechargement, poids_camion_decharge, poids_camion_apres_chargement,  chargement_id, operateur_id) => {
+const updateDechargement = async (
+  id,
+  numero_bordereau,
+  numero_bon_commande,
+  etat_camion,
+  lieu_dechargement,
+  poids_camion_decharge,
+  poids_camion_apres_chargement,
+  chargement_id,
+  operateur_id
+) => {
   try {
     const connection = await connectDatabase();
-    const query = "UPDATE dechargements SET numero_bordereau = ?, numero_bon_commande = ?, etat_camion = ?, lieu_dechargement = ?, poids_camion_decharge = ?, poids_camion_apres_chargement = ?, chargement_id = ?, operateur_id = ? WHERE id = ?";
-    const [result] = await connection.query(query, [numero_bordereau, numero_bon_commande, etat_camion, lieu_dechargement, poids_camion_decharge, poids_camion_apres_chargement,  chargement_id, operateur_id, id]);
+    const query =
+      "UPDATE dechargements SET numero_bordereau = ?, numero_bon_commande = ?, etat_camion = ?, lieu_dechargement = ?, poids_camion_decharge = ?, poids_camion_apres_chargement = ?, chargement_id = ?, operateur_id = ? WHERE id = ?";
+    const [result] = await connection.query(query, [
+      numero_bordereau,
+      numero_bon_commande,
+      etat_camion,
+      lieu_dechargement,
+      poids_camion_decharge,
+      poids_camion_apres_chargement,
+      chargement_id,
+      operateur_id,
+      id,
+    ]);
     connection.end();
     return result.affectedRows > 0;
   } catch (error) {
     throw error;
   }
 };
-
 
 // Delete dechargement
 const deleteDechargement = async (id) => {
@@ -83,6 +128,17 @@ const deleteDechargement = async (id) => {
     const [result] = await connection.query(query, [id]);
     connection.end();
     return result.affectedRows > 0;
+  } catch (error) {
+    throw error;
+  }
+};
+const getDechargementByBordereau = async (numero_bordereau) => {
+  try {
+    const connection = await connectDatabase();
+    const query = "SELECT * FROM dechargements WHERE TRIM(numero_bordereau) = ?";
+    const [result] = await connection.query(query, [numero_bordereau]);
+    await connection.end();
+    return result.length > 0 ? result[0] : null; // Retourne l'objet si trouvé, sinon null
   } catch (error) {
     throw error;
   }
@@ -108,4 +164,5 @@ module.exports = {
   updateDechargement,
   deleteDechargement,
   getDechargementByChargement,
+  getDechargementByBordereau,
 };

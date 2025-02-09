@@ -16,18 +16,18 @@ try {
 
   // Vérifiez si le fichier .env a été correctement chargé
   if (result.error) {
-    console.error(`Erreur lors du chargement du fichier .env :`, result.error);
+    //console.error(`Erreur lors du chargement du fichier .env :`, result.error);
     process.exit(1); // Arrêtez le processus si les variables d'environnement sont critiques
   } else {
     console.log(`Fichier .env chargé depuis : ${envPath}`);
   }
 } catch (error) {
-  console.error(`Erreur inattendue lors du chargement du fichier .env :`, error);
+  //console.error(`Erreur inattendue lors du chargement du fichier .env :`, error);
   process.exit(1);
 }
 
 // Le reste de votre application peut utiliser les variables chargées
-console.log("NODE_ENV:", process.env.NODE_ENV);
+//console.log("NODE_ENV:", process.env.NODE_ENV);
 
 
 //const listEndpoints = require('express-list-endpoints');
